@@ -9,19 +9,19 @@ int main(int argc, char *argv[]) {
 }
 
 void init() {
-    //initialiser le 1e bloc de m-d à 'libre'
+    //initialiser le 1e bloc de m-d a 'libre'
 }
 
 void my_free(void *pointer) {
-    //set les m-d du bloc à 'libre'
+    //set les m-d du bloc a 'libre'
     // si on sait, augmenter la taille du bloc
     //    en y ajoutant la taille du bloc d'apres,
-    //    pour éviter le partitionnement
+    //    pour eviter le partitionnement
 }
 void my_malloc(size_t size) {
-    //parcourir la heap de m-d en m-d jusqu'à trouver un bloc
+    //parcourir la heap de m-d en m-d jusqu'a trouver un bloc
     //de taille >= size
-    //set les m-d du bloc à 'occupé'
+    //set les m-d du bloc a 'occupe'
     //si taille >= size: créer des m-d a heap[bloc + size]
-    //return heap[bloc + sizeof(méta-données)]
+    //return heap[bloc + sizeof(meta-donnees)]
 }
