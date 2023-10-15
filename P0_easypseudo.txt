@@ -1,0 +1,29 @@
+void init(){
+	MY_HEAP[0] = [0, 6399, 1] //[flag, taille, next m-d];
+	MY_HEAP[6399]= [1, 0, null];
+}
+
+
+void* malloc(size_t size) {
+	int[] current = MY_HEAP[0] //on first metadonné
+	while(current[2] != null)
+		if( current[1] >= size && current[0] == 0) // if current block has enough size and flag is 0 
+ 			current[0] = 1;
+			current[1] = size + padding; //is paddding supposed to be 8?
+			if(current[2] == current[2]+1){//if no m-d has been init it will be pointing on next block from current one 
+				current[2] = size + padding + 1; 
+				MY_HEAP[current[2]] = [0, 6399-current[2],current[2]+1]; //init next m-d to be just after
+			}
+			return &current;
+		else{
+		current = MY_HEAP[current[2]]
+		}
+	}
+	return error 
+}
+
+
+Opti:
+- implemeter une linked list a la place d'une liste 
+- implementer double linked list
+
