@@ -6,7 +6,7 @@ void init(){
 
 void* malloc(size_t size) {
 	int[] current = MY_HEAP[0] //on first metadonné
-	while(current[2] != null)
+	while(current[2] != null) {
 		if( current[1] >= size && current[0] == 0) // if current block has enough size and flag is 0 
  			current[0] = 1;
 			current[1] = size + padding; //is paddding supposed to be 8?
@@ -26,4 +26,3 @@ void* malloc(size_t size) {
 Opti:
 - implemeter une linked list a la place d'une liste 
 - implementer double linked list
-
