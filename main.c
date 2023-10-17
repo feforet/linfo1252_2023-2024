@@ -30,7 +30,7 @@ void my_free(void *pointer) {
 
 void *my_malloc(size_t size) {
     //parcourir la heap de m-d en m-d jusqu'a trouver un bloc de taille >= sizeWeNeed
-    uint16_t sizeWeNeed = (((size - 1) / 8) + 1);
+    uint16_t sizeWeNeed = size;
     int current = 0;
     while (current < 64000) {
         // verification de la disponibilite et de la taille
@@ -40,7 +40,7 @@ void *my_malloc(size_t size) {
             MY_HEAP[current] = 1;
 
             //si sizeOfCurrent >> sizeWeNeed: créer des m-d a heap[bloc + sizeWeNeed]
-            //le +4 permet de s'assurer que on aura la place pour stocker au moins 8bits 
+            //le +4 permet de s'assurer que on aura la place pour stocker au moins 1 octet 
             //apres avoir place 3 blocs de m-d
             if ((sizeWeNeed + 4) < sizeOfCurrent) {
                 // set un nouveau bloc de m-d à HEAP[current+sizeWeNeed+3]
@@ -71,13 +71,16 @@ void print_heap(int n) {
 }
 
 int main(int argc, char *argv[]) {
+    int a = 13;
     init();
-    print_heap(8);
-    uint8_t* ptr1 = (uint8_t*) my_malloc(8);
-    print_heap(8);
-    *ptr1 = 0b10011001;
-    print_heap(8);
+    print_heap(a);
+    uint8_t* ptr1 = (uint8_t*) my_malloc(1);
+    print_heap(a);
+    *ptr1 = 3;
+    print_heap(a);
+    uint8_t *ptr2 = (uint8_t*) my_malloc(2);
+    print_heap(a);
     my_free(ptr1);
-    print_heap(8);
+    print_heap(a);
     return 0;
 }
