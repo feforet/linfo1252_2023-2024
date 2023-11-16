@@ -127,6 +127,40 @@ void *my_malloc_2_chainee(size_t size) {
     return NULL; // si pas de place dans la stack
 }
 
+void *my_malloc_meilleure_recherche(size_t size) {
+    uint16_t *HEAP = (uint16_t*) MY_HEAP;
+    //parcourir la heap de m-d en m-d jusqu'a trouver un bloc de taille >= sizeWeNeed
+    uint16_t sizeWeNeed = (size + (size % 2)) / 2;  //arrondit au pair superieur
+    int current = 0;
+    while (current < 32000) {
+        // verification de la disponibilite et de la taille
+        uint16_t sizeOfCurrent = HEAP[current] & 0b0111111111111111;
+        if (((HEAP[current] >> 15) == 0) && (sizeOfCurrent >= sizeWeNeed)) {
+            //si on alloue dans un bloc trop grand, on le separe en 2
+            if (sizeOfCurrent > sizeWeNeed + 3) {
+                HEAP[current] = sizeWeNeed;
+                //creer un nouveau bloc de metadonnees et l'initialiser
+                int newMeta = current + 2 + sizeWeNeed;
+                uint16_t sizeOfNew = sizeOfCurrent - sizeWeNeed - 2;
+                HEAP[newMeta] = sizeOfNew;
+                HEAP[newMeta + 1] = sizeWeNeed;
+                // changer la taille prec du suivant
+                if (current + sizeOfCurrent + 3 < 32000) {
+                    HEAP[current + sizeOfCurrent + 3] = sizeOfNew;
+                }
+            }
+
+            //set les m-d du bloc a 'occupe'
+            HEAP[current] = HEAP[current] | (uint16_t) 1 << 15;
+
+            return &(HEAP[current + 2]);
+        } else {
+            current += 2 + sizeOfCurrent;
+        }
+    }
+    return NULL; // si pas de place dans la stack
+}
+
 
 void print_heap(int n) {
     uint16_t* HEAP = (uint16_t*) MY_HEAP;
