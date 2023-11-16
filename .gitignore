@@ -1,3 +1,5 @@
 main
-part1
+lecteurs_ecrivains
+philosophes
+producteurs_consommateurs
 *.json
