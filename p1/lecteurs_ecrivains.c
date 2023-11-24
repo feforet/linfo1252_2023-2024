@@ -11,7 +11,7 @@ sem_t sem_read;
 int writecount=0;
 int readcount=0;
 
-
+// il faut faire 640 ecritures et 2560 lectures AU TOTAL et pas chacun
 void* writer() {
     for(int i = 0; i < 640; i++) {
         pthread_mutex_lock(&mutex_write);
