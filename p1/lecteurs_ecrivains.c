@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <stdbool.h>
 #include <semaphore.h>
 
 pthread_mutex_t mutex_write;
@@ -10,11 +11,17 @@ sem_t sem_write;
 sem_t sem_read;
 int writecount=0;
 int readcount=0;
+int ecrits=0;
+int lus=0;
 
 // il faut faire 640 ecritures et 2560 lectures AU TOTAL et pas chacun
 void* writer() {
-    for(int i = 0; i < 640; i++) {
+    while(true) {
         pthread_mutex_lock(&mutex_write);
+        if (++ecrits > 640){
+            pthread_mutex_unlock(&mutex_write);
+            break;
+        }
         writecount++;
         if (writecount==1) sem_wait(&sem_read);
         pthread_mutex_unlock(&mutex_write);
@@ -29,14 +36,21 @@ void* writer() {
         if (writecount==0) sem_post(&sem_read);
         pthread_mutex_unlock(&mutex_write);
     }
+    return 0;
 }
 
 
 void* reader() {
-    for(int i = 0; i < 2560; i++) {
+    while(true) {
         pthread_mutex_lock(&z); // un seul reader en attente sur sem_read
         sem_wait(&sem_read);
         pthread_mutex_lock(&mutex_read);
+        if (++lus > 2560) {
+            pthread_mutex_unlock(&z);
+            sem_post(&sem_read);
+            pthread_mutex_unlock(&mutex_read);
+            break;
+        }
         readcount++;
         if (readcount==1) sem_wait(&sem_write);
         pthread_mutex_unlock(&mutex_read);
@@ -51,14 +65,13 @@ void* reader() {
         if(readcount==0) sem_post(&sem_write);
         pthread_mutex_unlock(&mutex_read);
     }
+    return 0;
 }
 
 
 int main(int argc, char *argv[]) {
-    //int nWriters = atoi(argv[1]);
-    //int nReaders = atoi(argv[2]);
-    int nWriters = 10;
-    int nReaders = 10;
+    int nWriters = atoi(argv[1]);
+    int nReaders = atoi(argv[2]);
 
     sem_init(&sem_write, 0, 1);
     sem_init(&sem_read, 0, 1);

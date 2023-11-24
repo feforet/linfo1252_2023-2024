@@ -18,7 +18,7 @@ int y = 0;
 void* producer () {
     while(true) {
         for (int i=0; i<10000; i++);
-        int item = rand();
+        int toWrite = 1;
         sem_wait(&empty);
         pthread_mutex_lock(&mutex);
         if (x == N_DATA) {
@@ -28,10 +28,17 @@ void* producer () {
             break;
         }
         //insert_item();
-        buffer[x++ % BUF_SIZE] = item;
+        if (buffer[x % BUF_SIZE] != 0) {
+            pthread_mutex_unlock(&mutex);
+            sem_post(&full);
+            sem_post(&empty);
+            return -1;
+        }
+        buffer[x++ % BUF_SIZE] = toWrite;
         pthread_mutex_unlock(&mutex);
         sem_post(&full);
     }
+    return 0;
 }
 
 void* consumer () {
@@ -47,10 +54,17 @@ void* consumer () {
         }
         //remove_item();
         res = buffer[y++ % BUF_SIZE];
+        if (res == 0) {
+            pthread_mutex_unlock(&mutex);
+            sem_post(&empty);
+            sem_post(&full);
+            return -1;
+        }
         pthread_mutex_unlock(&mutex);
         sem_post(&empty);
         for (int i=0; i<10000; i++);
     }
+    return 0;
 }
 
 int main(int argc, char *argv[]) {
@@ -70,14 +84,18 @@ int main(int argc, char *argv[]) {
     }
 
     void* res;
+    int err = 0;
     for (int i = 0; i < nProd; i++) {
         pthread_join(producers[i], &res);
+        if (((int*) res) != 0) err = -1;
     }
     for (int i = 0; i < nCons; i++) {
         pthread_join(consumers[i], &res);
+        if (((int*) res) != 0) err = -1;
     }
 
     pthread_mutex_destroy(&mutex);
     sem_destroy(&empty);
     sem_destroy(&full);
+    return err;
 }

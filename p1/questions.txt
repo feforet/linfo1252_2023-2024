@@ -1,5 +1,0 @@
-producteurs-consommateurs:
-    On doit remplir le buffer avec des entiers aléatoires? ou arbitraires?
-    On doit remettre à 0 une donnée consommée, même si elle sera écrasée après par une autre donée?
-
-
