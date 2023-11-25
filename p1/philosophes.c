@@ -5,69 +5,71 @@
 #include <unistd.h>
 
 
-int philo;
-pthread_t phil;
+int nPhilo;
 pthread_mutex_t* baguette;
 
 void mange(int id) {
 printf("Philosophe [%d] mange\n",id);
-
 }
 
-void* philosophe ( void* arg )
-{
-int *id=(int *) arg;
-int left = *id;
-int right = (left + 1) % philo;
+void* philosophe ( void* arg ) {
+    for (int i = 0; i < 10000000; i++) {
+        int *id=(int *) arg;
+        int left = *id;
+        int right = (left + 1) % nPhilo;
 
-if(left<right) {
-pthread_mutex_lock(&baguette[left]);
-pthread_mutex_lock(&baguette[right]);
-}
+        if(right<left) {
+            int tmp = left;
+            left = right;
+            right = tmp;
+        } // On fait en sorte que la baguette de gauche soit toujours la plus petite
 
-else {
-    pthread_mutex_lock(&baguette[right]);
-    pthread_mutex_lock(&baguette[left]);
-}
+        pthread_mutex_lock(&baguette[left]);
+        pthread_mutex_lock(&baguette[right]);
 
-mange(*id);
-pthread_mutex_unlock(&baguette[left]);
-pthread_mutex_unlock(&baguette[right]);
-return (NULL);
-}
+        //mange(*id);
+
+        pthread_mutex_unlock(&baguette[left]);
+        pthread_mutex_unlock(&baguette[right]);
+    }
+    return (NULL);
+}   
 
 
 int main(int argc, char *argv[]) {
-    philo = atoi(argv[1]);
-    baguette = (pthread_mutex_t*)malloc(philo* sizeof(pthread_mutex_t));
+    nPhilo = atoi(argv[1]);
+    baguette = (pthread_mutex_t*)malloc(nPhilo* sizeof(pthread_mutex_t));
+    pthread_t phils[nPhilo];
+    int id[nPhilo];
 
     //init mutex for each baguette
-     for(int i= 0; i<philo; i++){
+    for(int i= 0; i<nPhilo; i++){
         pthread_mutex_init(&baguette[i], NULL);
     }
     
-    int id[philo];
     /*
     int C0=0;
     int c1=0;
     int C2=0;
     */
-    for(int j=0; j<10000000  ; j++){
-        for(int i= 0; i<philo; i++){
-            id[i]= i;
-            pthread_create(&phil, NULL, philosophe, &id[i]);
-            /*
-            if(i==0){
-                C0++;
-            }
-            if(i==1){
-                c1++;
-            }
-            if(i==2){
-                C2++;
-            }
-            */
-        
+    for(int i= 0; i<nPhilo; i++){
+        id[i]= i;
+        pthread_create(phils + i, NULL, &philosophe, id + i);
+        /*
+        if(i==0){
+            C0++;
         }
+        if(i==1){
+            c1++;
+        }
+        if(i==2){
+            C2++;
+        }
+        */
     }
+    void* res;
+    for (int i = 0; i < nPhilo; i++) {
+        pthread_join(phils[i], &res);
+    }
+    printf("done: %d\n", nPhilo);
 }

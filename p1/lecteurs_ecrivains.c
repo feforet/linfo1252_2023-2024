@@ -95,8 +95,6 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < nReaders; i++) {
         pthread_join(readers[i], &res);
     }
-    
-    printf("fini !!\n");
 
     pthread_mutex_destroy(&mutex_write);
     pthread_mutex_destroy(&mutex_read);
