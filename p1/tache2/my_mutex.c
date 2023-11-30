@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include "my_mutex.h"
+
+my_mutex_t mutx;
 
 static inline int my_test_and_set(int* verrou) {
     __asm__(
@@ -15,21 +18,21 @@ static inline int my_test_and_set(int* verrou) {
     );
 }
 
-int pthread_mutex_init(my_mutex_t* mutex) {
+int my_mutex_init(my_mutex_t* mutex) {
     mutex->value = 0;
 }
 
-int pthread_mutex_lock_ts(my_mutex_t* mutex) {
+int my_mutex_lock_ts(my_mutex_t* mutex) {
     my_test_and_set(&(mutex->value));
 }
 
-int pthread_mutex_lock_tts(my_mutex_t* mutex) {
+int my_mutex_lock_tts(my_mutex_t* mutex) {
     while (my_test_and_set(&(mutex->value))) {
         while (mutex->value) {}
     }
 }
 
-int pthread_mutex_unlock(my_mutex_t* mutex) {
+int my_mutex_unlock(my_mutex_t* mutex) {
     int *val = &(mutex->value);
     __asm__(
         "movl $0, %%eax\n\t"
@@ -40,33 +43,50 @@ int pthread_mutex_unlock(my_mutex_t* mutex) {
     );
 }
 
-int sem_init(my_sem_t* sem, int val) {
+int my_sem_init(my_sem_t* sem, int val) {
     sem->value = val;
-    sem->wakeups = 0;
-    pthread_mutex_init(sem->mutex);
+    my_mutex_init(sem->mutex);
 }
 
 int my_sem_wait(my_sem_t* sem) {
-    pthread_mutex_lock_ts(sem->mutex);
+    my_mutex_lock_ts(sem->mutex);
     while (sem->value <= 0) {
-        pthread_mutex_unlock(sem->mutex);
-        pthread_mutex_lock_ts(sem->mutex);
+        my_mutex_unlock(sem->mutex);
+        my_mutex_lock_ts(sem->mutex);
     }
     sem->value--;
-    pthread_mutex_unlock(sem->mutex);
+    my_mutex_unlock(sem->mutex);
 }
 
 int my_sem_post(my_sem_t *sem) {
-    pthread_mutex_lock_ts(sem->mutex);
+    my_mutex_lock_ts(sem->mutex);
     sem->value++;
-    pthread_mutex_unlock(sem->mutex);
+    my_mutex_unlock(sem->mutex);
 }
 
-int main() {
-    my_mutex_t mutx;
-    pthread_mutex_init(&mutx);
-    pthread_mutex_lock_ts(&mutx);
-    printf("i = %d\n", mutx.value);
-    pthread_mutex_unlock(&mutx);
-    printf("i = %d\n", mutx.value);
+void* func (void* arg) {
+    int nAccess = *((int*) arg);
+    for (int i = 0; i < nAccess; i++) {
+        my_mutex_lock_ts(&mutx);
+        for (int i = 0; i < 10000; i++) {}
+        
+        my_mutex_unlock(&mutx);
+    }
+    
+}
+
+int main(int argc, char *argv[]) {
+    int nThreads = atoi(argv[1]);
+    int nAccess = 6400 / nThreads;
+
+    my_mutex_init(&mutx);
+
+    void* res;
+    pthread_t threads[nThreads];
+    for (int i = 0; i < nThreads; i++) {
+        pthread_create(threads + i, NULL, &func, &nAccess);
+    }
+    for (int i = 0; i < nThreads; i++) {
+        pthread_join(threads[i], &res);
+    }
 }
