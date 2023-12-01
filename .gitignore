@@ -4,3 +4,4 @@ philosophes
 producteurs_consommateurs
 my_mutex
 *.json
+code/*.csv
