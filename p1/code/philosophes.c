@@ -71,5 +71,4 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < nPhilo; i++) {
         pthread_join(phils[i], &res);
     }
-    printf("done: %d\n", nPhilo);
 }
