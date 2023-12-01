@@ -1,5 +1,5 @@
 #!/bin/bash
-TOMEASURE=lecteurs_ecrivains
+TOMEASURE=code/lecteurs_ecrivains
 OUT=$TOMEASURE.csv
 NMes=5
 
