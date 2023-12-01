@@ -23,13 +23,40 @@ int my_mutex_init(my_mutex_t* mutex) {
 }
 
 int my_mutex_lock_ts(my_mutex_t* mutex) {
-    my_test_and_set(&(mutex->value));
+    __asm__(
+        "ENTER:\n\t"
+        "movl $1, %%eax\n\t"
+        "xchgl %%eax, %0\n\t"
+        "testl %%eax, %%eax\n\t"
+        "jnz ENTER\n\t"
+        :"+m" (*mutex)
+        :
+        :"%eax"
+    );
 }
 
 int my_mutex_lock_tts(my_mutex_t* mutex) {
-    while (my_test_and_set(&(mutex->value))) {
-        while (mutex->value) {}
-    }
+    __asm__(
+        "ENTER:\n\t"
+        "movl $1, %%eax\n\t"
+        "xchgl %%eax, %0\n\t"
+        "testl %%eax, %%eax\n\t"
+        "jz FIN \n\t"
+
+        "LOOP: \n\t"
+        "testl %0, %0 \n\t"
+        "jnz LOOP \n\t"
+        "jmp ENTER \n\t"
+
+
+        "FIN: \n\t"
+
+        :"+m" (*mutex)
+        :
+        :"%eax"
+
+    );
+    
 }
 
 int my_mutex_unlock(my_mutex_t* mutex) {

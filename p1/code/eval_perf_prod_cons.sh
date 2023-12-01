@@ -1,5 +1,5 @@
 #!/bin/bash
-TOMEASURE=producteurs_consommateurs
+TOMEASURE=code/producteurs_consommateurs
 OUT=$TOMEASURE.csv
 NMes=5
 

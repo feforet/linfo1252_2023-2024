@@ -1,5 +1,5 @@
 #!/bin/bash
-TOMEASURE=philosophes
+TOMEASURE=code/philosophes
 OUT=$TOMEASURE.csv
 NMes=5
 
@@ -11,3 +11,5 @@ for n in 2 4 8 16 32 64; do
         /usr/bin/time -f "%e" -o $OUT -a ./$TOMEASURE $n
     done
 done
+
+cat $OUT
