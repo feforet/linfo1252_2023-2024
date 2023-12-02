@@ -58,9 +58,9 @@ void* consumer () {
             break;
         }
         //remove_item();
-        y++;
-        res = buffer[y % BUF_SIZE];
         //y++;
+        res = buffer[y % BUF_SIZE];
+        y++;
         /*
         if (res == 0) {
             printf("y passes res \n");
