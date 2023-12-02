@@ -5,7 +5,7 @@ NMes=5
 
 
 echo "nombre de coeurs,mesure" > $OUT
-for n in 2; do
+for n in 2 ; do
     for i in $(seq 1 $NMes); do
         echo -n "$n," >> $OUT
         /usr/bin/time -f "%e" -o $OUT -a ./$TOMEASURE $((n/2)) $((n/2))
