@@ -16,7 +16,7 @@ int x = 0;
 int y = 0;
 
 void* producer () {
-    while(true) {
+    while (true) {
         for (int i=0; i<10000; i++);
         int toWrite = 1;
         sem_wait(&empty);
@@ -32,13 +32,13 @@ void* producer () {
             pthread_mutex_unlock(&mutex);
             sem_post(&full);
             sem_post(&empty);
-            return -1;
+            return (void *)-1;
         }
         buffer[x++ % BUF_SIZE] = toWrite;
         pthread_mutex_unlock(&mutex);
         sem_post(&full);
     }
-    return 0;
+    return (void *)0;
 }
 
 void* consumer () {
@@ -58,13 +58,13 @@ void* consumer () {
             pthread_mutex_unlock(&mutex);
             sem_post(&empty);
             sem_post(&full);
-            return -1;
+            return (void *)-1;
         }
         pthread_mutex_unlock(&mutex);
         sem_post(&empty);
         for (int i=0; i<10000; i++);
     }
-    return 0;
+    return (void *) 0;
 }
 
 int main(int argc, char *argv[]) {
