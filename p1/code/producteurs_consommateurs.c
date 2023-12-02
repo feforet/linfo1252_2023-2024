@@ -17,29 +17,27 @@ int y = 0;
 
 void* producer () {
     while (true) {
-        printf("x is: %i\n", x);
-        //printf(" data = %i\n", N_DATA);
-        for (int i=0; i<10000; i++);
+        for (int i=0; i<10000; i++){};
         int toWrite = 1;
         sem_wait(&empty);
         pthread_mutex_lock(&mutex);
         if (x == N_DATA) {
-            printf("x pass break\n");
             pthread_mutex_unlock(&mutex);
             sem_post(&full);
-            sem_post(&empty);
+            //sem_post(&empty);//why
             break;
 
         }
         //insert_item();
+        /*
         if (buffer[x % BUF_SIZE] != 0) {
             printf("x pass insert\n");
             pthread_mutex_unlock(&mutex);
             sem_post(&full);
-            sem_post(&empty);
+            //sem_post(&empty);//why
             return (void *)-1;
         }
-        //x++;
+        */
         buffer[x % BUF_SIZE] = toWrite;
         x++;
         pthread_mutex_unlock(&mutex);
@@ -53,36 +51,35 @@ void* consumer () {
     while (true) {
         sem_wait(&full);
         pthread_mutex_lock(&mutex);
-        printf("y is: %i \n", y);
         if (y == N_DATA) {
-            printf("equals N_DATA\n");
             pthread_mutex_unlock(&mutex);
-            sem_post(&empty);
-            sem_post(&full);
+            sem_post(&empty);//this shouldn't be here 
+            sem_post(&full);//neither should this bc consumed enough ?
             break;
         }
         //remove_item();
         y++;
         res = buffer[y % BUF_SIZE];
         //y++;
+        /*
         if (res == 0) {
             printf("y passes res \n");
             pthread_mutex_unlock(&mutex);
             sem_post(&empty);
-            sem_post(&full);
+            //sem_post(&full);//NOO
             return (void *)-1;
 
         }
+        */
         pthread_mutex_unlock(&mutex);
         sem_post(&empty);
-        for (int i=0; i<10000; i++);
+        for (int i=0; i<10000; i++){};
     }
     return (void *) 0;
 }
 
 int main(int argc, char *argv[]) {
-    printf("NEW CALL TO MAIN\n" );
-    int nCons = atoi(argv[1]); //"2");
+    int nCons = atoi(argv[1]);
     int nProd = atoi(argv[2]);
     pthread_mutex_init(&mutex, NULL);
     sem_init(&empty, 0, BUF_SIZE);
