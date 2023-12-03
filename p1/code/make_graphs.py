@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import sys
-
+"""
 file = sys.argv[1]
 
 with open(file) as fd:
@@ -14,14 +14,18 @@ nThreads = np.unique(donnees[:,0])
 execTime = donnees[:,1]
 nExec = execTime.size//nThreads.size
 execTime = execTime.reshape((nThreads.size,nExec))
-mean = np.mean(execTime, 1)
-median = np.median(execTime, 1)
-stdev = np.std(execTime, 1)
+
+data1=[]
+data2=[]
+data3=[]
+data4=[]
+data5=[]
+data6=[]
 
 fig = plt.figure()
 name = file[:-4]
+#print(donnees)
 
-"""
 plt.plot(nThreads, execTime, "bo")
 plt.plot(nThreads, mean, "r-", label="Moyenne")
 plt.plot(nThreads, stdev, "g-", label="Ecart-type")
@@ -40,7 +44,6 @@ plt.savefig(name + ".png")
 #plt.savefig(name + ".pdf")
 plt.show()
 plt.close()
-"""
 
 #new graphs
 plt.plot(nThreads, execTime, "ro", label='Mesures')
@@ -58,7 +61,38 @@ plt.ylabel("Temps d'exécution [s]")
 plt.title(f"Temps d'exécution en fonction du nombre de threads\n({nExec} exécutions par nombre de threads)")
 plt.grid(True)
 plt.legend()
-plt.savefig(name + ".png")
-plt.savefig(name + ".pdf")
+#plt.savefig(name + ".png")
+#plt.savefig(name + ".pdf")
 #plt.show()
 plt.close()
+
+"""
+#Creating boxplot 
+file = sys.argv[1]
+
+with open(file) as fd:
+    data = pd.read_csv(fd)
+
+donnees = np.array(data)
+
+nThreads = np.unique(donnees[:,0])
+execTime = donnees[:,1]
+nExec = execTime.size//nThreads.size
+execTime = execTime.reshape((nThreads.size,nExec))
+
+mean = np.mean(execTime, 1)#moyenne 
+median = np.median(execTime, 1)
+stdev = np.std(execTime, 1) #écart type
+
+bp = data.boxplot(by='nombre de coeurs', column=['mesure'], grid = True, figsize=(20, 50), fontsize= 15)
+[ax_tmp.set_xlabel('Nombre de Coeurs', size=20) for ax_tmp in np.asarray(bp).reshape(-1)]
+#plt.errorbar([1,2,3,4,5,6], mean, stdev, fmt='ko-', label='Moyenne ± écart-type')
+plt.plot([1,2,3,4,5,6], stdev, 'b', label='Ecart_type')
+plt.plot([1,2,3,4,5,6], mean, 'r', label='Moyenne')
+
+#plt.plot(nThreads, stdev, "g-", label="Ecart-type")
+plt.ylabel("Temps d'exécution [s]", size=20)
+plt.title("Temps en fonction des coeurs pour l'algo producteurs-consomateurs", size =20 )
+plt.legend()
+plt.show()
+
