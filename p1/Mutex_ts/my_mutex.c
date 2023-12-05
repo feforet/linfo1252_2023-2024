@@ -87,6 +87,7 @@ void* func (void* arg) {
     }
     
 }
+/*
 
 int main(int argc, char *argv[]) {
     int nThreads = atoi(argv[1]);
@@ -102,4 +103,6 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < nThreads; i++) {
         pthread_join(threads[i], &res);
     }
+    
 }
+*/
