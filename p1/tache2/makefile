@@ -1,10 +1,7 @@
 CC = gcc
 LIBS = -lpthread
-INCLUDE = my_mutex.h
+INCLUDE = tache2/my_mutex.h
 
 ARGS = my_mutex
 run:
 	$(CC) -o $(ARGS) $(ARGS).c $(LIBS)
-
-clean:
-	rm $(ARGS).o

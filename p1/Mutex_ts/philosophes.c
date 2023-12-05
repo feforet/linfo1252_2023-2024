@@ -3,10 +3,11 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include "my_mutex.h"
 
 
 int nPhilo;
-pthread_mutex_t* baguette;
+my_mutex_t* baguette;
 
 void mange(int id) {
 printf("Philosophe [%d] mange\n",id);
@@ -24,13 +25,13 @@ void* philosophe ( void* arg ) {
             right = tmp;
         } // On fait en sorte que la baguette de gauche soit toujours la plus petite
 
-        pthread_mutex_lock(&baguette[left]);
-        pthread_mutex_lock(&baguette[right]);
+        my_mutex_lock_ts(&baguette[left]);
+        my_mutex_lock_ts(&baguette[right]);
 
         //mange(*id);
 
-        pthread_mutex_unlock(&baguette[left]);
-        pthread_mutex_unlock(&baguette[right]);
+        my_mutex_unlock(&baguette[left]);
+        my_mutex_unlock(&baguette[right]);
     }
     return (NULL);
 }   
@@ -38,13 +39,13 @@ void* philosophe ( void* arg ) {
 
 int main(int argc, char *argv[]) {
     nPhilo = atoi(argv[1]);
-    baguette = (pthread_mutex_t*)malloc(nPhilo* sizeof(pthread_mutex_t));
+    baguette = (my_mutex_t*)malloc(nPhilo* sizeof(my_mutex_t));
     pthread_t phils[nPhilo];
     int id[nPhilo];
 
     //init mutex for each baguette
     for(int i= 0; i<nPhilo; i++){
-        pthread_mutex_init(&baguette[i], NULL);
+        my_mutex_init(&baguette[i]);
     }
     
     /*

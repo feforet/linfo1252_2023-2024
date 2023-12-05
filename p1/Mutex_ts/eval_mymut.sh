@@ -1,5 +1,5 @@
 #!/bin/bash
-TOMEASURE=prod_cons
+TOMEASURE=philo
 OUT=$TOMEASURE.csv
 NMes=5
 
