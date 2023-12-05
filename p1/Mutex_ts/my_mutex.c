@@ -59,23 +59,23 @@ int my_mutex_unlock(my_mutex_t* mutex) {
 
 int my_sem_init(my_sem_t* sem, int val) {
     sem->value = val;
-    my_mutex_init(sem->waiting);
-    my_mutex_init(sem->modifying);
+    my_mutex_init(&(sem->waiting));
+    my_mutex_init(&(sem->modifying));
 }
 
 int my_sem_wait(my_sem_t* sem) {
-    my_mutex_lock_ts(sem->waiting);
+    my_mutex_lock_ts(&(sem->waiting));
     while (sem->value <= 0) {}
-    my_mutex_lock_ts(sem->modifying);
+    my_mutex_lock_ts(&(sem->modifying));
     sem->value--;
-    my_mutex_unlock(sem->modifying);
-    my_mutex_unlock(sem->waiting);
+    my_mutex_unlock(&(sem->modifying));
+    my_mutex_unlock(&(sem->waiting));
 }
 
 int my_sem_post(my_sem_t *sem) {
-    my_mutex_lock_ts(sem->modifying);
+    my_mutex_lock_ts(&(sem->modifying));
     sem->value++;
-    my_mutex_unlock(sem->modifying);
+    my_mutex_unlock(&(sem->modifying));
 }
 
 void* func (void* arg) {
