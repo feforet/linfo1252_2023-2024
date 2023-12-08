@@ -64,12 +64,15 @@ int my_sem_init(my_sem_t* sem, int val) {
 }
 
 int my_sem_wait(my_sem_t* sem) {
-    my_mutex_lock_ts(&(sem->waiting));
-    while (sem->value <= 0) {}
-    my_mutex_lock_ts(&(sem->modifying));
-    sem->value--;
-    my_mutex_unlock(&(sem->modifying));
-    my_mutex_unlock(&(sem->waiting));
+    while (1) {
+        my_mutex_lock_tts(&(sem->modifying));
+        if(sem->value > 0) {
+            sem->value--;
+            my_mutex_unlock(&(sem->modifying));
+            break;
+        }
+        my_mutex_unlock(&(sem->modifying));
+    }
 }
 
 int my_sem_post(my_sem_t *sem) {
