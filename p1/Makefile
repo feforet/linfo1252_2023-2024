@@ -9,7 +9,7 @@ INCLUDE = tache2/my_mutex.h
 
 #ARGS Tache 2 TS
 
-#ARGS = Mutex_ts/lecteurs_ecrivains
+#ARGS = lecteurs_ecrivains
 ARGS = philosophes
 #ARGS = producteurs_consommateurs
 STRUCT= my_mutex

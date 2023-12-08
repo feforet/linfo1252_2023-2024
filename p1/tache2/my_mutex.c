@@ -59,7 +59,6 @@ int my_mutex_unlock(my_mutex_t* mutex) {
 
 int my_sem_init(my_sem_t* sem, int val) {
     sem->value = val;
-    my_mutex_init(&(sem->waiting));
     my_mutex_init(&(sem->modifying));
 }
 
