@@ -61,7 +61,7 @@ plt.close()
 
 """
 
-"""
+
 #CODE PARTIE 1
 #Creating boxplot 
 file = sys.argv[1]
@@ -75,6 +75,7 @@ nThreads = np.unique(donnees[:,0])
 execTime = donnees[:,1]
 nExec = execTime.size//nThreads.size
 execTime = execTime.reshape((nThreads.size,nExec))
+ymax = np.max(execTime)
 
 mean = np.mean(execTime, 1)#moyenne 
 median = np.median(execTime, 1)
@@ -82,19 +83,24 @@ stdev = np.std(execTime, 1) #écart type
 bp = data.boxplot(by='nombre de coeurs', column=['mesure'], grid = True, figsize=(20, 50), fontsize= 15)
 [ax_tmp.set_xlabel('Nombre de Coeurs', size=20) for ax_tmp in np.asarray(bp).reshape(-1)]
 #plt.errorbar([1,2,3,4,5,6,7], mean, stdev, fmt='ko-', label='Moyenne ± écart-type')
-plt.plot([1,2,3,4,5,6,7], stdev, 'b', label='Ecart_type')
-plt.plot([1,2,3,4,5,6,7], mean, 'ro', label='Moyenne')
+plt.plot([1,2,3,4,5,6], stdev, 'b', label='Ecart_type')
+plt.plot([1,2,3,4,5,6], mean, 'ro', label='Moyenne')
 
 
 plt.ylabel("Temps d'exécution [s]", size=20)
 plt.xlabel("Nombre de Coeurs", size=20)
-plt.title("Performance verrou test-and-set", size =20 )
+plt.ylim(0,ymax*1.05)
+plt.title("Temps en fonction des coeurs du problèmes du philosophes", size =20 )
 plt.grid(True)
 plt.legend()
 plt.show()
 
-"""
+
+
+
 #CODE PARTIE 2.2/2.3
+"""
+
 #Creating boxplot 
 file1 = sys.argv[1]
 file2 = sys.argv[2]
@@ -204,6 +210,7 @@ plt.gca().tick_params(axis='x', which='minor', length=4)
 plt.gca().tick_params(axis='x', which='major', length=0)
 # Change the limits of the x-axis
 plt.xlim([0.5, len(list(datasets[0])) + 0.5])
+plt.ylim(0,0.3)
 plt.grid(True)
 g1 = plt.gca().scatter(0, 0.3, color='g')
 g2 = plt.gca().scatter(0, 0.3, color='r')
@@ -213,3 +220,4 @@ plt.show()
 
 #df1 = data.boxplot(by='nombre de coeurs', column=['mesure'])
 #plt.show()
+"""

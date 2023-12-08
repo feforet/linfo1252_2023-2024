@@ -88,7 +88,7 @@ void* func (void* arg) {
     
 }
 
-
+/*
 int main(int argc, char *argv[]) {
     int nThreads = atoi(argv[1]);
     int nAccess = 6400 / nThreads;
@@ -105,3 +105,4 @@ int main(int argc, char *argv[]) {
     }
     
 }
+*/
