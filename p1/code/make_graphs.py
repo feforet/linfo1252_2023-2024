@@ -90,15 +90,16 @@ plt.plot([1,2,3,4,5,6], mean, 'ro', label='Moyenne')
 plt.ylabel("Temps d'exécution [s]", size=20)
 plt.xlabel("Nombre de Coeurs", size=20)
 plt.ylim(0,ymax*1.05)
-plt.title("Temps en fonction des coeurs du problèmes du philosophes", size =20 )
+plt.title("Temps en fonction des coeurs de l'algo lecteurs/Ecrivains", size =20 )
 plt.grid(True)
 plt.legend()
+plt.savefig('Lect' + ".pdf")
 plt.show()
 
 
 
 
-#CODE PARTIE 2.2/2.3
+#CODE PARTIE 2
 """
 
 #Creating boxplot 
@@ -115,23 +116,25 @@ donnees1 = np.array(data1)
 donnees2 = np.array(data2)
 
 nThreads = np.unique(donnees1[:,0])
-execTime = donnees1[:,1]
-nExec = execTime.size//nThreads.size
-execTime = execTime.reshape((nThreads.size,nExec))
+execTime1 = donnees1[:,1]
+nExec = execTime1.size//nThreads.size
+execTime1 = execTime1.reshape((nThreads.size,nExec))
 
-mean1 = np.mean(execTime, 1)#moyenne 
-median1 = np.median(execTime, 1)
-stdev1 = np.std(execTime, 1) #écart typev
+mean1 = np.mean(execTime1, 1)#moyenne 
+median1 = np.median(execTime1, 1)
+stdev1 = np.std(execTime1, 1) #écart typev
 
 nThreads = np.unique(donnees2[:,0])
-execTime = donnees2[:,1]
-nExec = execTime.size//nThreads.size
-execTime = execTime.reshape((nThreads.size,nExec))
+execTime2 = donnees2[:,1]
+nExec = execTime2.size//nThreads.size
+execTime2 = execTime2.reshape((nThreads.size,nExec))
 
-mean2 = np.mean(execTime, 1)#moyenne 
-median2 = np.median(execTime, 1)
-stdev2 = np.std(execTime, 1) #écart typev
-print(donnees1)
+mean2 = np.mean(execTime2, 1)#moyenne 
+median2 = np.median(execTime2, 1)
+stdev2 = np.std(execTime2, 1) #écart typev
+
+
+
 
 a1 = []
 a2 = []
@@ -175,12 +178,12 @@ for i in range(0, len(data1)):
 
 
 
-tas = pd.DataFrame({'1': a1, '2': a2, '4': a3, '8': a4, '16':a5, '32': a6, '64': a7})
-tts = pd.DataFrame({'1': b1, '2': b2, '4': b3, '8': b4, '16':b5, '32': b6, '64': b7})     
+tas = pd.DataFrame({ '2': a2, '4': a3, '8': a4, '16':a5, '32': a6, '64': a7})
+tts = pd.DataFrame({ '2': b2, '4': b3, '8': b4, '16':b5, '32': b6, '64': b7})     
 
 datasets = [tas, tts]
 colours = ['green', 'red']
-groups = ['test-and-set', 'test-and-test-and-set']
+groups = ['Mutex/sémaphore', 'Algo tts', 'std dev mutex/sem', 'std dev tts', 'Moyenne' ]
 
 
 x_pos_range = np.arange(len(datasets)) / (len(datasets) - 1)
@@ -204,20 +207,38 @@ for i, data in enumerate(datasets):
 # Titles
 plt.ylabel("Temps d'exécution [s]", size=20)
 plt.xlabel("Nombre de Coeurs", size=20)
-plt.title("Performance test-and-set and test-and-test-and-set", size =20 )
+plt.title("Producteurs Consommateurs", size =20 )
+
+
+plt.plot([0.75,2,3,4,5,5.75], stdev1, 'b', label='Ecart_type TS')
+plt.plot([0.75,1.75,2.75,3.75,4.75,5.75], mean1, 'co', label='Moyenne TS')
+
+plt.plot([1.25,2.25,3.25,4.25,5.25,6.25], stdev2, 'y', label='Ecart_type TTS')
+plt.plot([1.25,2.25,3.25,4.25,5.25,6.25], mean2, 'co', label='Moyenne TTS')
+#for partie 2.2/2.3
+#plt.plot([1,2,3,4,5,6], stdev2, 'y', label='Ecart_type tts')
+#plt.plot([1,2,3,4,5,6], mean2, 'ko', label='Moyenne tts')
+
+
+
 # Axis ticks and labels
 plt.gca().tick_params(axis='x', which='minor', length=4)
 plt.gca().tick_params(axis='x', which='major', length=0)
 # Change the limits of the x-axis
 plt.xlim([0.5, len(list(datasets[0])) + 0.5])
-plt.ylim(0,0.3)
+plt.ylim(0,0.5)
 plt.grid(True)
 g1 = plt.gca().scatter(0, 0.3, color='g')
 g2 = plt.gca().scatter(0, 0.3, color='r')
-plt.gca().legend([g1, g2], groups, fontsize='small')
-plt.show()
+g3= plt.gca().scatter(0,0.5, color='b')
+g4= plt.gca().scatter(0,0.5, color='y')
+g5= plt.gca().scatter(0,0.5, color='c')
 
+
+plt.gca().legend([g1, g2, g3, g4, g5], groups, fontsize='small')
+#plt.savefig('lect_TTS' + ".pdf")
+plt.show()
+"""
 
 #df1 = data.boxplot(by='nombre de coeurs', column=['mesure'])
 #plt.show()
-"""

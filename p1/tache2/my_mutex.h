@@ -7,8 +7,7 @@ typedef struct {
 
 typedef struct {
     int value;
-    my_mutex_t* waiting;
-    my_mutex_t* modifying;
+    my_mutex_t modifying;
 }my_sem_t;
 
 

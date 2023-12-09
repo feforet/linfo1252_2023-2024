@@ -59,23 +59,25 @@ int my_mutex_unlock(my_mutex_t* mutex) {
 
 int my_sem_init(my_sem_t* sem, int val) {
     sem->value = val;
-    my_mutex_init(sem->waiting);
-    my_mutex_init(sem->modifying);
+    my_mutex_init(&(sem->modifying));
 }
 
 int my_sem_wait(my_sem_t* sem) {
-    my_mutex_lock_ts(sem->waiting);
-    while (sem->value <= 0) {}
-    my_mutex_lock_ts(sem->modifying);
-    sem->value--;
-    my_mutex_unlock(sem->modifying);
-    my_mutex_unlock(sem->waiting);
+    while (1) {
+        my_mutex_lock_tts(&(sem->modifying));
+        if(sem->value > 0) {
+            sem->value--;
+            my_mutex_unlock(&(sem->modifying));
+            break;
+        }
+        my_mutex_unlock(&(sem->modifying));
+    }
 }
 
 int my_sem_post(my_sem_t *sem) {
-    my_mutex_lock_ts(sem->modifying);
+    my_mutex_lock_ts(&(sem->modifying));
     sem->value++;
-    my_mutex_unlock(sem->modifying);
+    my_mutex_unlock(&(sem->modifying));
 }
 
 void* func (void* arg) {
@@ -87,6 +89,7 @@ void* func (void* arg) {
     }
     
 }
+/*
 
 int main(int argc, char *argv[]) {
     int nThreads = atoi(argv[1]);
@@ -102,4 +105,6 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < nThreads; i++) {
         pthread_join(threads[i], &res);
     }
+    
 }
+*/
