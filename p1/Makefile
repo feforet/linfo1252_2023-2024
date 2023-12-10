@@ -1,5 +1,9 @@
 #Makefile pour les test du P1
 
+#all: compile tous les fichiers nécessaires à l'exécution de tous les tests
+#tests: lance tous les tests
+#clean: clean tous les fichiers créés par make all et make tests
+
 #Partie 1:
 #run1: compile les fichier c pour les 3 problèmes avec l'implementation des mutex POSIX
 #test1: test les 3 problèmes et stock les fichiers CSV dans le fichier code  (philosophes prend une bonne dizaine de minutes)
