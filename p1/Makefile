@@ -15,7 +15,27 @@
 #test_tts: test les 3 problèmes et stock les fichiers CSV dans le fichier tache 2 (philosophes prend une bonne dizaine de minutes)
 #clean_tts: clean les fichier pour la partie 2_tts 
 
+all:
+	make run1
+	make run_ts
+	make run_tts
 
+tests:
+	make test1
+	make test_ts
+	make test_tts
+
+clean:
+	rm philosophes
+	rm philosophes.o
+	rm producteurs_consommateurs
+	rm producteurs_consommateurs.o
+	rm lecteurs_ecrivains
+	rm lecteurs_ecrivains.o
+	rm my_mutex.o
+	make clean1
+	make clean_ts
+	make clean_tts
 
 CC = gcc
 LIBS = -lpthread
