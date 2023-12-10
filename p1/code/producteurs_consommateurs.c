@@ -17,29 +17,20 @@ int y = 0;
 
 void* producer () {
     while (true) {
-        for (int i=0; i<10000; i++){};
+        for (int i=0; i<10000; i++){}; // simule un traitement
         int toWrite = 1;
         sem_wait(&empty);
         pthread_mutex_lock(&mutex);
         if (x == N_DATA) {
             pthread_mutex_unlock(&mutex);
             sem_post(&full);
-            //sem_post(&empty);//why
             break;
+        }
 
-        }
-        //insert_item();
-        /*
-        if (buffer[x % BUF_SIZE] != 0) {
-            printf("x pass insert\n");
-            pthread_mutex_unlock(&mutex);
-            sem_post(&full);
-            //sem_post(&empty);//why
-            return (void *)-1;
-        }
-        */
+        // insert item
         buffer[x % BUF_SIZE] = toWrite;
         x++;
+
         pthread_mutex_unlock(&mutex);
         sem_post(&full);
     }
@@ -53,27 +44,18 @@ void* consumer () {
         pthread_mutex_lock(&mutex);
         if (y == N_DATA) {
             pthread_mutex_unlock(&mutex);
-            sem_post(&empty);//this shouldn't be here 
-            sem_post(&full);//neither should this bc consumed enough ?
+            sem_post(&empty);
+            sem_post(&full);
             break;
         }
-        //remove_item();
-        //y++;
+
+        // remove item
         res = buffer[y % BUF_SIZE];
         y++;
-        /*
-        if (res == 0) {
-            printf("y passes res \n");
-            pthread_mutex_unlock(&mutex);
-            sem_post(&empty);
-            //sem_post(&full);//NOO
-            return (void *)-1;
-
-        }
-        */
+        
         pthread_mutex_unlock(&mutex);
         sem_post(&empty);
-        for (int i=0; i<10000; i++){};
+        for (int i=0; i<10000; i++){}; // simule un traitement
     }
     return (void *) 0;
 }
@@ -85,7 +67,6 @@ int main(int argc, char *argv[]) {
     sem_init(&empty, 0, BUF_SIZE);
     sem_init(&full, 0, 0);
     
-
     pthread_t producers[nProd];
     pthread_t consumers[nCons];
     for (int i = 0; i < nProd; i++) {

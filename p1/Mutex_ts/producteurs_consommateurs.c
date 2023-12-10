@@ -5,28 +5,20 @@
 #include <semaphore.h>
 #include "my_mutex.h"
 
-//Mymut_ts
-
 #define BUF_SIZE 8
 #define N_DATA 8192
 
 
 my_mutex_t mutex;
-
 my_sem_t empty;
 my_sem_t full;
-/*
-sem_t empty;
-sem_t full;
-*/
-
 int buffer[BUF_SIZE];
 int x = 0;
 int y = 0;
 
 void* producer () {
     while (true) {
-        for (int i=0; i<10000; i++){};
+        for (int i=0; i<10000; i++){}; // simule un traitement
         int toWrite = 1;
         my_sem_wait(&empty);
         my_mutex_lock_ts(&mutex);
@@ -36,18 +28,11 @@ void* producer () {
             break;
 
         }
-        //insert_item();
-        /*
-        if (buffer[x % BUF_SIZE] != 0) {
-            printf("x pass insert\n");
-            pthread_mutex_unlock(&mutex);
-            sem_post(&full);
-            //sem_post(&empty);//why
-            return (void *)-1;
-        }
-        */
+
+        // insert item
         buffer[x % BUF_SIZE] = toWrite;
         x++;
+
         my_mutex_unlock(&mutex);
         my_sem_post(&full);
     }
@@ -61,28 +46,18 @@ void* consumer () {
         my_mutex_lock_ts(&mutex);
         if (y == N_DATA) {
             my_mutex_unlock(&mutex);
-            
             my_sem_post(&empty);
             my_sem_post(&full);
             break;
         }
-        //remove_item();
-        //y++;
+
+        // remove item
         res = buffer[y % BUF_SIZE];
         y++;
-        /*
-        if (res == 0) {
-            printf("y passes res \n");
-            pthread_mutex_unlock(&mutex);
-            sem_post(&empty);
-            //sem_post(&full);//NOO
-            return (void *)-1;
-
-        }
-        */
+        
         my_mutex_unlock(&mutex);
         my_sem_post(&empty);
-        for (int i=0; i<10000; i++){};
+        for (int i=0; i<10000; i++){}; // simule un traitement
     }
     return (void *) 0;
 }
@@ -91,11 +66,8 @@ int main(int argc, char *argv[]) {
     int nCons = atoi(argv[1]);
     int nProd = atoi(argv[2]);
     my_mutex_init(&mutex);
-    
     my_sem_init(&empty, 0);
     my_sem_init(&full, 0);
-    
-    
 
     pthread_t producers[nProd];
     pthread_t consumers[nCons];
@@ -116,9 +88,5 @@ int main(int argc, char *argv[]) {
         pthread_join(consumers[i], &res);
         if (((int*) res) != 0) err = -1;
     }
-
-    //pthread_mutex_destroy(&mutex);
-    //sem_destroy(&empty);
-    //sem_destroy(&full);
     return err;
 }

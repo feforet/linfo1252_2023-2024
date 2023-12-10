@@ -15,10 +15,10 @@ int readcount=0;
 int ecrits=0;
 int lus=0;
 
-// il faut faire 640 ecritures et 2560 lectures AU TOTAL et pas chacun
+
 void* writer() {
     while(true) {
-        my_mutex_lock_ts(&mutex_write);
+        my_mutex_lock_tts(&mutex_write);
         if (++ecrits > 640){
             my_mutex_unlock(&mutex_write);
             break;
@@ -32,7 +32,7 @@ void* writer() {
         for (int i=0; i<10000; i++);
         my_sem_post(&sem_write);
         
-        my_mutex_lock_ts(&mutex_write);
+        my_mutex_lock_tts(&mutex_write);
         writecount--;
         if (writecount==0) my_sem_post(&sem_read);
         my_mutex_unlock(&mutex_write);
@@ -43,9 +43,9 @@ void* writer() {
 
 void* reader() {
     while(true) {
-        my_mutex_lock_ts(&z); // un seul reader en attente sur sem_read
+        my_mutex_lock_tts(&z); // un seul reader en attente sur sem_read
         my_sem_wait(&sem_read);
-        my_mutex_lock_ts(&mutex_read);
+        my_mutex_lock_tts(&mutex_read);
         if (++lus > 2560) {
             my_mutex_unlock(&z);
             my_sem_post(&sem_read);
@@ -61,7 +61,7 @@ void* reader() {
         // section critique
         for (int i=0; i<10000; i++);
 
-        my_mutex_lock_ts(&mutex_read);
+        my_mutex_lock_tts(&mutex_read);
         readcount--;
         if(readcount==0) my_sem_post(&sem_write);
         my_mutex_unlock(&mutex_read);
@@ -96,10 +96,4 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < nReaders; i++) {
         pthread_join(readers[i], &res);
     }
-
-   // pthread_mutex_destroy(&mutex_write);
-    //pthread_mutex_destroy(&mutex_read);
-    //pthread_mutex_destroy(&z);
-    //sem_destroy(&sem_write);
-    //sem_destroy(&sem_read);
 }

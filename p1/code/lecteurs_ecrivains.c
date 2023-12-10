@@ -14,7 +14,7 @@ int readcount=0;
 int ecrits=0;
 int lus=0;
 
-// il faut faire 640 ecritures et 2560 lectures AU TOTAL et pas chacun
+
 void* writer() {
     while(true) {
         pthread_mutex_lock(&mutex_write);

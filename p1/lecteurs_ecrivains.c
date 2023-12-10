@@ -15,7 +15,7 @@ int readcount=0;
 int ecrits=0;
 int lus=0;
 
-// il faut faire 640 ecritures et 2560 lectures AU TOTAL et pas chacun
+
 void* writer() {
     while(true) {
         my_mutex_lock_tts(&mutex_write);
@@ -96,11 +96,4 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < nReaders; i++) {
         pthread_join(readers[i], &res);
     }
-/*
-    pthread_mutex_destroy(&mutex_write);
-    pthread_mutex_destroy(&mutex_read);
-    pthread_mutex_destroy(&z);
-    sem_destroy(&sem_write);
-    sem_destroy(&sem_read);
-    */
 }
