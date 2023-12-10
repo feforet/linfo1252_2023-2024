@@ -61,7 +61,7 @@ plt.close()
 
 """
 
-
+"""
 #CODE PARTIE 1
 #Creating boxplot 
 file = sys.argv[1]
@@ -179,11 +179,11 @@ for i in range(0, len(data1)):
 
 
 tas = pd.DataFrame({ '2': a2, '4': a3, '8': a4, '16':a5, '32': a6, '64': a7})
-tts = pd.DataFrame({ '2': b2, '4': b3, '8': b4, '16':b5, '32': b6, '64': b7})     
+tts = pd.DataFrame({  '2': b2, '4': b3, '8': b4, '16':b5, '32': b6, '64': b7})     
 
 datasets = [tas, tts]
 colours = ['green', 'red']
-groups = ['Mutex/sémaphore', 'Algo tts', 'std dev mutex/sem', 'std dev tts', 'Moyenne' ]
+groups = ['Algo mutex/sémaphore', 'Algo tts', 'std dev mutex/sem', 'std dev tts', 'Moyenne' ]
 
 
 x_pos_range = np.arange(len(datasets)) / (len(datasets) - 1)
@@ -210,10 +210,10 @@ plt.xlabel("Nombre de Coeurs", size=20)
 plt.title("Producteurs Consommateurs", size =20 )
 
 
-plt.plot([0.75,2,3,4,5,5.75], stdev1, 'b', label='Ecart_type TS')
+plt.plot([1,2,3,4,5,6,], stdev1, 'b', label='Ecart_type TS')
 plt.plot([0.75,1.75,2.75,3.75,4.75,5.75], mean1, 'co', label='Moyenne TS')
 
-plt.plot([1.25,2.25,3.25,4.25,5.25,6.25], stdev2, 'y', label='Ecart_type TTS')
+plt.plot([1.25,2,3,4,5,6], stdev2, 'y', label='Ecart_type TTS')
 plt.plot([1.25,2.25,3.25,4.25,5.25,6.25], mean2, 'co', label='Moyenne TTS')
 #for partie 2.2/2.3
 #plt.plot([1,2,3,4,5,6], stdev2, 'y', label='Ecart_type tts')
@@ -226,7 +226,7 @@ plt.gca().tick_params(axis='x', which='minor', length=4)
 plt.gca().tick_params(axis='x', which='major', length=0)
 # Change the limits of the x-axis
 plt.xlim([0.5, len(list(datasets[0])) + 0.5])
-plt.ylim(0,0.5)
+plt.ylim(0,0.3)
 plt.grid(True)
 g1 = plt.gca().scatter(0, 0.3, color='g')
 g2 = plt.gca().scatter(0, 0.3, color='r')
@@ -236,9 +236,8 @@ g5= plt.gca().scatter(0,0.5, color='c')
 
 
 plt.gca().legend([g1, g2, g3, g4, g5], groups, fontsize='small')
-#plt.savefig('lect_TTS' + ".pdf")
+plt.savefig('Prod_TTS' + ".pdf")
 plt.show()
-"""
 
 #df1 = data.boxplot(by='nombre de coeurs', column=['mesure'])
 #plt.show()

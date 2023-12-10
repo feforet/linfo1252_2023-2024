@@ -18,15 +18,15 @@ void* philosophe ( void* arg ) {
         int *id=(int *) arg;
         int left = *id;
         int right = (left + 1) % nPhilo;
-
+ 
         if(right<left) {
             int tmp = left;
             left = right;
             right = tmp;
         } // On fait en sorte que la baguette de gauche soit toujours la plus petite
 
-        my_mutex_lock_ts(&baguette[left]);
-        my_mutex_lock_ts(&baguette[right]);
+        my_mutex_lock_tts(&baguette[left]);
+        my_mutex_lock_tts(&baguette[right]);
 
         //mange(*id);
 

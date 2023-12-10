@@ -11,8 +11,7 @@
 #define N_DATA 8192
 
 
-//my_mutex_t mutex;
-pthread_mutex_t mutex;
+my_mutex_t mutex;
 
 my_sem_t empty;
 my_sem_t full;
@@ -29,16 +28,11 @@ void* producer () {
     while (true) {
         for (int i=0; i<10000; i++){};
         int toWrite = 1;
-        //sem_wait(&empty);
         my_sem_wait(&empty);
-        //my_mutex_lock_ts(&mutex);
-        pthread_mutex_lock(&mutex);
+        my_mutex_lock_ts(&mutex);
         if (x == N_DATA) {
-            pthread_mutex_unlock(&mutex);
-            //my_mutex_unlock(&mutex);
+            my_mutex_unlock(&mutex);
             my_sem_post(&full);
-            //sem_post(&full);
-            //sem_post(&empty);//why
             break;
 
         }
@@ -54,9 +48,7 @@ void* producer () {
         */
         buffer[x % BUF_SIZE] = toWrite;
         x++;
-        pthread_mutex_unlock(&mutex);
-        //my_mutex_unlock(&mutex);
-        //sem_post(&full);
+        my_mutex_unlock(&mutex);
         my_sem_post(&full);
     }
     return (void *)0;
@@ -66,19 +58,12 @@ void* consumer () {
     int res;
     while (true) {
         my_sem_wait(&full);
-        //sem_wait(&full);
-        pthread_mutex_lock(&mutex);
-        //my_mutex_lock_ts(&mutex);
+        my_mutex_lock_ts(&mutex);
         if (y == N_DATA) {
-            //my_mutex_unlock(&mutex);
-            pthread_mutex_unlock(&mutex);
+            my_mutex_unlock(&mutex);
             
-            my_sem_post(&empty);//this shouldn't be here 
-            my_sem_post(&full);//neither should this bc consumed enough ?
-            /*
-            sem_post(&empty);//this shouldn't be here 
-            sem_post(&full);//neither should this bc consumed enough ?
-            */
+            my_sem_post(&empty);
+            my_sem_post(&full);
             break;
         }
         //remove_item();
@@ -95,9 +80,7 @@ void* consumer () {
 
         }
         */
-        //my_mutex_unlock(&mutex);
-        pthread_mutex_unlock(&mutex);
-        //sem_post(&empty);
+        my_mutex_unlock(&mutex);
         my_sem_post(&empty);
         for (int i=0; i<10000; i++){};
     }
@@ -107,12 +90,8 @@ void* consumer () {
 int main(int argc, char *argv[]) {
     int nCons = atoi(argv[1]);
     int nProd = atoi(argv[2]);
-    //my_mutex_init(&mutex);
-    pthread_mutex_init(&mutex, NULL);
-    /*
-    sem_init(&empty, 0, BUF_SIZE);
-    sem_init(&full, 0, 0);
-    */
+    my_mutex_init(&mutex);
+    
     my_sem_init(&empty, 0);
     my_sem_init(&full, 0);
     
@@ -138,7 +117,7 @@ int main(int argc, char *argv[]) {
         if (((int*) res) != 0) err = -1;
     }
 
-    pthread_mutex_destroy(&mutex);
+    //pthread_mutex_destroy(&mutex);
     //sem_destroy(&empty);
     //sem_destroy(&full);
     return err;
