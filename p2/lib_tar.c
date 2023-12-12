@@ -16,7 +16,36 @@
  *         -3 if the archive contains a header with an invalid checksum value
  */
 int check_archive(int tar_fd) {
-    return 0;
+
+    //TO ADD
+    //does magic contain a null? is it at end?
+    // Does version contain a non null? at end?
+    //Check checksum value --> need to calculate it 
+
+
+    tar_header_t buff;
+    int curr = -1;
+
+    curr = read(tar_fd, &buff, sizeof(tar_header_t));
+    if(buff.magic == TMAGIC){
+        if(buff.version == TVERSION){
+            if(buff.chksum == 'total'){
+                return buff.chksum;
+            }
+            else{
+                return -3;
+            }
+
+        }
+        else{
+            return -2;
+        }
+    }
+    return -1;
+    
+
+
+
 }
 
 /**
