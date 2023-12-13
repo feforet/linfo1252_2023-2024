@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
     if (fd == -1) {
         perror("open(tar_file)");
         return -1;
-    }
+    } 
 
     int ret = check_archive(fd);
     printf("check_archive returned %d\n", ret);
