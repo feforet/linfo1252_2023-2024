@@ -4,36 +4,31 @@
 
 
 
-int calculate_chksum(tar_header_t pointer) {
+int calculate_chksum(tar_header_t* pointer) {
     unsigned char ans = 0;
-    ans += (unsigned char) pointer.name;
-    ans += (unsigned char) pointer.mode;                 /* 100 */
-    ans += (unsigned char) pointer.uid;                  /* 108 */
-    ans += (unsigned char) pointer.gid;                  /* 116 */
-    ans += (unsigned char) pointer.size;                /* 124 */
-    ans += (unsigned char) pointer.mtime;               /* 136 */
-    //ans += (unsigned char) pointer.chksum;   
-    ans += (unsigned char) 32*sizeof(pointer.chksum);//not sure this is correct
-    ans += (unsigned char) pointer.typeflag;                /* 156 */
-    ans += (unsigned char) pointer.linkname;           /* 157 */
-    ans += (unsigned char) pointer.magic;                /* 257 */
-    ans += (unsigned char) pointer.version;              /* 263 */
-    ans += (unsigned char) pointer.uname;               /* 265 */
-    ans += (unsigned char) pointer.gname;               /* 297 */
-    ans += (unsigned char) pointer.devmajor;             /* 329 */
-    ans += (unsigned char) pointer.devminor;             /* 337 */
-    ans += (unsigned char) pointer.prefix;             /* 345 */
-    ans += (unsigned char) pointer.padding;  
 
-    /*
-    int ans = 0;
-    for(int i=0; i<sizeof(pointer); i++){
-        if(i< offsetof(tar_header_t, chksum) || i>= offsetof(tar_header_t, chksum)+sizeof(pointer.chksum)){
-            ans += (unsigned char) pointer[i] //this is gonna be wrong how to iterate over a structure?
+    // Avec tableau
+    char head[sizeof(tar_header_t)];
+    strcpy(head, (const char * restrict) pointer);
+    for (size_t i = 0; i < sizeof(tar_header_t); i++){
+        if(i < 148 || i > 156 ){ 
+            ans += head[i];
         }
     }
-    */
+    ans += 32*8;
 
+
+
+    //avec pointer
+    // char* head = pointer;
+    // for (size_t i = 0; i < 512; i++)
+    // {
+    //     if (i == 148) pointer += 8;
+    //     ans += *head;
+    //     head++;
+    // }
+
+   return ans;
 }
 /**
  * Checks whether the archive is valid.
@@ -50,13 +45,8 @@ int calculate_chksum(tar_header_t pointer) {
  *         -2 if the archive contains a header with an invalid version value,
  *         -3 if the archive contains a header with an invalid checksum value
  */
-int check_archive(int tar_fd) {
-
-    //TO ADD
-    //does magic contain a null? is it at end?
-    // Does version contain a non null? at end?
-    //Check checksum value --> need to calculate it 
-
+int check_archive(int tar_fd) { 
+    //always returns -2
 
     tar_header_t buff; //should i do a malloc?
     int curr = -1;
@@ -64,7 +54,7 @@ int check_archive(int tar_fd) {
     if(curr == -1){
         return 0;
     }
-    int total = (int) calculate_chksum(buff);
+    int total = (int) calculate_chksum(&buff);
 
     if( strcmp(TMAGIC, buff.magic)== 0 && buff.magic[5]=='\0'){
         if(strcmp(TVERSION, buff.version) == 0){
@@ -80,9 +70,8 @@ int check_archive(int tar_fd) {
             return -2;
         }
     }
-    else{ //invalid magic number 
+    //invalid magic number 
         return -1;
-    }
 
 }
 
