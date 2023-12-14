@@ -13,6 +13,8 @@ int calculate_chksum(tar_header_t* pointer) {
     for (size_t i = 0; i < sizeof(tar_header_t); i++){
         if(i < 148 || i > 156 ){ 
             ans += head[i];
+        } else {
+            ans += 32; // """the chksum field is treated as if it were filled with spaces (ASCII 32)"""
         }
     }
     ans += 32*8;
@@ -57,7 +59,12 @@ int check_archive(int tar_fd) {
     int total = (int) calculate_chksum(&buff);
 
     if( strcmp(TMAGIC, buff.magic)== 0 && buff.magic[5]=='\0'){
-        if(strcmp(TVERSION, buff.version) == 0){
+        char version[3];
+        for (int i = 0; i < 2; i++) {
+            version[i] = buff.version[i];
+        }
+        version[2] = '\0';
+        if(strcmp(TVERSION, version) == 0){
             if(TAR_INT(buff.chksum) == total){
                 return  TAR_INT(buff.chksum);
             }
