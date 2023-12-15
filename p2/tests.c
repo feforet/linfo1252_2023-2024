@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
         return -1;
     } 
 
-    int ret = check_archive(fd);
+    int ret = exists(fd, "tests.c");
     printf("check_archive returned %d\n", ret);
 
     return 0;

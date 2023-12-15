@@ -71,7 +71,25 @@ int check_archive(int tar_fd) {
  *         any other value otherwise.
  */
 int exists(int tar_fd, char *path) {
-    return 0;
+    tar_header_t buff; 
+    int start = 0;
+    while(1){
+        pread(tar_fd, &buff, sizeof(tar_header_t), start*BLOCK);
+        if(calculate_chksum(&buff) == 256){
+            return 0; //end of file
+        }
+        if(strcmp(buff.name, path)==0){
+            return start+1;  //OUBLIE PAS DE METTRE -1 POUR ACCEDER AU HEADER
+        }
+        //passer au prochain file
+        if(TAR_INT(buff.size)% BLOCK== 0){
+            start += (1+ TAR_INT(buff.size)/BLOCK);
+        }
+        else{
+            start += (2+ TAR_INT(buff.size)/BLOCK);
+        }  
+    }
+
 }
 
 /**
