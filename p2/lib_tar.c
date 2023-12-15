@@ -1,34 +1,14 @@
 #include "lib_tar.h"
-
 #include <string.h>
 
 
 
+
 int calculate_chksum(tar_header_t* pointer) {
-    unsigned char ans = 0;
-
-    // Avec tableau
-    char head[sizeof(tar_header_t)];
-    strcpy(head, (const char * restrict) pointer);
-    for (size_t i = 0; i < sizeof(tar_header_t); i++){
-        if(i < 148 || i > 156 ){ 
-            ans += head[i];
-        } else {
-            ans += 32; // """the chksum field is treated as if it were filled with spaces (ASCII 32)"""
-        }
-    }
-    ans += 32*8;
-
-
-
-    //avec pointer
-    // char* head = pointer;
-    // for (size_t i = 0; i < 512; i++)
-    // {
-    //     if (i == 148) pointer += 8;
-    //     ans += *head;
-    //     head++;
-    // }
+    int ans = 256;
+    char* head = (char*) pointer;
+    for(int i=0; i< 148; i++){ans += *(head+i);}
+    for(int i=156; i<512; i++){ans += *(head+i);}
 
    return ans;
 }
@@ -48,39 +28,38 @@ int calculate_chksum(tar_header_t* pointer) {
  *         -3 if the archive contains a header with an invalid checksum value
  */
 int check_archive(int tar_fd) { 
-    //always returns -2
+    tar_header_t buff; 
+    int total_headers = 0;
+    int start= 0; 
 
-    tar_header_t buff; //should i do a malloc?
-    int curr = -1;
-    curr = read(tar_fd, &buff, sizeof(tar_header_t));
-    if(curr == -1){
-        return 0;
-    }
-    int total = (int) calculate_chksum(&buff);
-
-    if( strcmp(TMAGIC, buff.magic)== 0 && buff.magic[5]=='\0'){
-        char version[3];
-        for (int i = 0; i < 2; i++) {
-            version[i] = buff.version[i];
+    while(1){
+        if(pread(tar_fd, &buff, sizeof(tar_header_t), start*BLOCK) < 0){
+            return -4;
         }
-        version[2] = '\0';
-        if(strcmp(TVERSION, version) == 0){
-            if(TAR_INT(buff.chksum) == total){
-                return  TAR_INT(buff.chksum);
-            }
-            else{
-                return -3;
-            }
-
+        int total = (int) calculate_chksum(&buff);
+        if(total == 256){
+            return total_headers; 
         }
-        else{//invalid version value
+        if( strcmp(TMAGIC, buff.magic)!= 0){
+            return -1;
+        }
+        if(buff.version[0]!= TVERSION[0] || buff.version[1] != TVERSION[1]){
             return -2;
         }
+        if(TAR_INT(buff.chksum) != total){
+            return -3;
+        }
+        total_headers++;
+        if(TAR_INT(buff.size)% BLOCK== 0){
+            start += (1+ TAR_INT(buff.size)/BLOCK);
+        }
+        else{
+            start += (2+ TAR_INT(buff.size)/BLOCK);
+        }   
     }
-    //invalid magic number 
-        return -1;
 
 }
+
 
 /**
  * Checks whether an entry exists in the archive.

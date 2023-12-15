@@ -6,6 +6,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <unistd.h>
+#define BLOCK 512
 
 typedef struct posix_header
 {                              /* byte offset */
