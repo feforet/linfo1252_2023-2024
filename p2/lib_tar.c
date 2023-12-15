@@ -2,16 +2,25 @@
 #include <string.h>
 
 
-
-
+/**
+ * Calculates the simple sum of all bytes in a header block.
+ * The chksum field is threated as if it were filled with spaces
+ * 
+ * @param pointer A pointer to a header block.
+ * 
+ * @return the simple sum of all bytes in the header block,
+ *         if all fields except chcksum are null-filled, returns 256.
+ */
 int calculate_chksum(tar_header_t* pointer) {
     int ans = 256;
     char* head = (char*) pointer;
     for(int i=0; i< 148; i++){ans += *(head+i);}
     for(int i=156; i<512; i++){ans += *(head+i);}
 
-   return ans;
+    return ans;
 }
+
+
 /**
  * Checks whether the archive is valid.
  *
@@ -49,12 +58,11 @@ int check_archive(int tar_fd) {
         if(TAR_INT(buff.chksum) != total){
             return -3;
         }
+
         total_headers++;
-        if(TAR_INT(buff.size)% BLOCK== 0){
-            start += (1+ TAR_INT(buff.size)/BLOCK);
-        }
-        else{
-            start += (2+ TAR_INT(buff.size)/BLOCK);
+        start += (1+ TAR_INT(buff.size)/BLOCK);
+        if(TAR_INT(buff.size) % BLOCK != 0) {
+            start += 1;
         }   
     }
 
@@ -69,6 +77,7 @@ int check_archive(int tar_fd) {
  *
  * @return zero if no entry at the given path exists in the archive,
  *         any other value otherwise.
+ *         (the )
  */
 int exists(int tar_fd, char *path) {
     tar_header_t buff; 
@@ -82,18 +91,24 @@ int exists(int tar_fd, char *path) {
             return start+1;  //OUBLIE PAS DE METTRE -1 POUR ACCEDER AU HEADER
         }
         //passer au prochain file
-        if(TAR_INT(buff.size)% BLOCK== 0){
-            start += (1+ TAR_INT(buff.size)/BLOCK);
-        }
-        else{
-            start += (2+ TAR_INT(buff.size)/BLOCK);
-        }  
+        start += (1+ TAR_INT(buff.size)/BLOCK);
+        if(TAR_INT(buff.size) % BLOCK != 0) {
+            start += 1;
+        }   
     }
 
 }
 
 
-
+/**
+ * Checks whether an entry corresponds to the specified type
+ * 
+ * @param tar_fd A file descriptor pointing to the start of a valid tar archive file.
+ * @param path A path to a valid entry in the archive.
+ * @param type A char corresponding to a type of entry.
+ *
+ * @return zero if the entry is not of the specified type, one otherwise.
+ */
 int check_type(int tar_fd, char *path, char type){
     tar_header_t buff;
     int result = exists(tar_fd, path);
@@ -107,6 +122,7 @@ int check_type(int tar_fd, char *path, char type){
     return 1;
 }
 
+
 /**
  * Checks whether an entry exists in the archive and is a directory.
  *
@@ -119,8 +135,8 @@ int check_type(int tar_fd, char *path, char type){
 
 int is_dir(int tar_fd, char *path) {
     return check_type(tar_fd, path, DIRTYPE);
-
 }
+
 
 /**
  * Checks whether an entry exists in the archive and is a file.
@@ -132,7 +148,7 @@ int is_dir(int tar_fd, char *path) {
  *         any other value otherwise.
  */
 int is_file(int tar_fd, char *path) {
-    return check_type(tar_fd, path, REGTYPE)+check_type(tar_fd, path, AREGTYPE);
+    return check_type(tar_fd, path, REGTYPE) + check_type(tar_fd, path, AREGTYPE);
 }
 
 
@@ -172,8 +188,42 @@ int is_symlink(int tar_fd, char *path) {
  *         any other value otherwise.
  */
 int list(int tar_fd, char *path, char **entries, size_t *no_entries) {
-    return 0;
+    if (is_symlink(tar_fd, path) == 0) {
+        //path = link_of_symlink(path);
+    }
+    if (is_dir(tar_fd, path) == 0) {
+        return 0;
+    }
+
+    int len_path = strlen(path);
+    tar_header_t buff;
+    int start = 0;
+    int n_listed;
+    for (int i = 0; i < *no_entries; i++) {
+        // OK parcourir les entrees du dir
+        // OK ne considerer que les fichiers dont le nom commence par (*path)
+        // et qui ne contiennent aucun '/' suplémentaire ou seulement un a la toute fin
+        pread(tar_fd, &buff, sizeof(tar_header_t), start*BLOCK);
+        if ((strlen(buff.name) > len_path) && (strncmp(path, buff.name, len_path) == 0)) {
+            //current is in path or in one of its sub-directories
+            if (strstr(buff.name+len_path, "/") == NULL) { // pour le moment ça exclut les sous-repertoires directs aussi, il faudrait ne pas chacker le dernier char
+                //current is directly in path
+                strcpy(entries[n_listed], buff.name);
+                n_listed++;
+            }
+        }
+
+        //passer au suivant
+        start += (1+ TAR_INT(buff.size)/BLOCK);
+        if(TAR_INT(buff.size) % BLOCK != 0) {
+            start += 1;
+        }
+    }
+    *no_entries = n_listed;
+    
+    return 1;
 }
+
 
 /**
  * Reads a file at a given path in the archive.
