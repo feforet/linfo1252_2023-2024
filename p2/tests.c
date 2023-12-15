@@ -36,8 +36,24 @@ int main(int argc, char **argv) {
         return -1;
     } 
 
-    int ret = exists(fd, "tests.c");
-    printf("check_archive returned %d\n", ret);
+    int check = check_archive(fd);
+    printf("check_archive returned %d\n", check);
+
+    int ex = exists(fd, "tests.c");
+    printf("exists returned %d\n", ex);
+
+    int ret = is_dir(fd, "hello/");
+    printf("is_dir right returned %d\n", ret);
+
+    ret = is_dir(fd, "Makefile");
+    printf("is_dir wrong returned %d\n", ret);
+
+    ret = is_file(fd, "Makefile");
+    printf("is_file right returned %d\n", ret);
+
+    ret = is_file(fd, "hello/");
+    printf("is_file wrong returned %d\n", ret);
+
 
     return 0;
 }

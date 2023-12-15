@@ -92,6 +92,21 @@ int exists(int tar_fd, char *path) {
 
 }
 
+
+
+int check_type(int tar_fd, char *path, char type){
+    tar_header_t buff;
+    int result = exists(tar_fd, path);
+    if(result == 0){
+        return 0;
+    }
+    pread(tar_fd, &buff, sizeof(tar_header_t), (result-1)*BLOCK);
+    if(buff.typeflag != type){
+        return 0;
+    }
+    return 1;
+}
+
 /**
  * Checks whether an entry exists in the archive and is a directory.
  *
@@ -101,8 +116,10 @@ int exists(int tar_fd, char *path) {
  * @return zero if no entry at the given path exists in the archive or the entry is not a directory,
  *         any other value otherwise.
  */
+
 int is_dir(int tar_fd, char *path) {
-    return 0;
+    return check_type(tar_fd, path, DIRTYPE);
+
 }
 
 /**
@@ -115,8 +132,9 @@ int is_dir(int tar_fd, char *path) {
  *         any other value otherwise.
  */
 int is_file(int tar_fd, char *path) {
-    return 0;
+    return check_type(tar_fd, path, REGTYPE)+check_type(tar_fd, path, AREGTYPE);
 }
+
 
 /**
  * Checks whether an entry exists in the archive and is a symlink.
@@ -127,7 +145,7 @@ int is_file(int tar_fd, char *path) {
  *         any other value otherwise.
  */
 int is_symlink(int tar_fd, char *path) {
-    return 0;
+    return check_type(tar_fd, path, SYMTYPE);
 }
 
 
