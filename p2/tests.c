@@ -54,14 +54,15 @@ int main(int argc, char **argv) {
     ret = is_file(fd, "hello/");
     printf("is_file wrong returned %d\n", ret);
 
-    char* entries[100];
-    for (int i = 0; i < 10; i++) {
+    char* entries[check];
+    for (int i = 0; i < check; i++) {
         entries[i] = (char*) malloc(sizeof(char[100]));
     }
-    size_t no_entr = 9;
+    size_t no_entr = check;
     ret = list(fd, "hello/", entries, &no_entr);
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < check; i++) {
         printf("- %s -\n", entries[i]);
+        free(entries[i]);
     }
 
     return 0;

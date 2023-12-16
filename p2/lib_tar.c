@@ -77,7 +77,6 @@ int check_archive(int tar_fd) {
  *
  * @return zero if no entry at the given path exists in the archive,
  *         any other value otherwise.
- *         (the )
  */
 int exists(int tar_fd, char *path) {
     tar_header_t buff; 
@@ -107,7 +106,7 @@ int exists(int tar_fd, char *path) {
  * @param path A path to a valid entry in the archive.
  * @param type A char corresponding to a type of entry.
  *
- * @return zero if the entry is not of the specified type, one otherwise.
+ * @return zero if the entry is not of the specified type, the location of the archive otherwise.
  */
 int check_type(int tar_fd, char *path, char type){
     tar_header_t buff;
@@ -119,7 +118,7 @@ int check_type(int tar_fd, char *path, char type){
     if(buff.typeflag != type){
         return 0;
     }
-    return 1;
+    return result;
 }
 
 
@@ -188,40 +187,46 @@ int is_symlink(int tar_fd, char *path) {
  *         any other value otherwise.
  */
 int list(int tar_fd, char *path, char **entries, size_t *no_entries) {
-    if (is_symlink(tar_fd, path) == 0) {
-        //path = link_of_symlink(path);
-    }
-    if (is_dir(tar_fd, path) == 0) {
-        return 0;
-    }
-
-    int len_path = strlen(path);
     tar_header_t buff;
-    int start = 0;
-    int n_listed;
-    for (int i = 0; i < *no_entries; i++) {
-        // OK parcourir les entrees du dir
-        // OK ne considerer que les fichiers dont le nom commence par (*path)
-        // et qui ne contiennent aucun '/' suplémentaire ou seulement un a la toute fin
-        pread(tar_fd, &buff, sizeof(tar_header_t), start*BLOCK);
-        if ((strlen(buff.name) > len_path) && (strncmp(path, buff.name, len_path) == 0)) {
-            //current is in path or in one of its sub-directories
-            if (strstr(buff.name+len_path, "/") == NULL) { // pour le moment ça exclut les sous-repertoires directs aussi, il faudrait ne pas chacker le dernier char
-                //current is directly in path
-                strcpy(entries[n_listed], buff.name);
-                n_listed++;
+    int is_sym = is_symlink(tar_fd, path);
+    while (is_sym) {
+        pread(tar_fd, &buff, sizeof(tar_header_t), (is_sym-1)*BLOCK);
+        path = buff.linkname;
+        is_sym = is_symlink(tar_fd, path);
+    }
+    if (is_dir(tar_fd, path)) {
+        int n_listed = 0;
+        int len_path = strlen(path);
+        int start = 0;
+        for (int i = 0; i < *no_entries; i++) {
+            // OK parcourir les entrees du dir
+            // OK ne considerer que les fichiers dont le nom commence par (*path)
+            // OK et qui ne contiennent aucun '/' suplémentaire ou seulement un a la toute fin
+            pread(tar_fd, &buff, sizeof(tar_header_t), start*BLOCK);
+            int cur_name_len = strlen(buff.name);
+            if ((cur_name_len > len_path) && (strncmp(path, buff.name, len_path) == 0)) {
+                //current is in path or in one of its sub-directories
+                char cur_name[cur_name_len];
+                strncpy(cur_name, buff.name, cur_name_len);
+                cur_name[cur_name_len - 2] = '\0'; //on enleve le dernier char du nom de l'entree pour que si c'est un dir ca prenne pas le '/' final
+                if (strstr(cur_name+len_path, "/") == NULL) {
+                    //current is directly in path
+                    strcpy(entries[n_listed], buff.name);
+                    n_listed++;
+                }
+            }
+
+            //passer au suivant
+            start += (1+ TAR_INT(buff.size)/BLOCK);
+            if(TAR_INT(buff.size) % BLOCK != 0) {
+                start += 1;
             }
         }
-
-        //passer au suivant
-        start += (1+ TAR_INT(buff.size)/BLOCK);
-        if(TAR_INT(buff.size) % BLOCK != 0) {
-            start += 1;
-        }
+        *no_entries = n_listed;
+        return 1;
     }
-    *no_entries = n_listed;
-    
-    return 1;
+    *no_entries = 0;
+    return 0; // if not is_dir()
 }
 
 
