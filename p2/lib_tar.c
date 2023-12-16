@@ -186,7 +186,7 @@ int is_symlink(int tar_fd, char *path) {
  * @return zero if no directory at the given path exists in the archive,
  *         any other value otherwise.
  */
-int list(int tar_fd, char *path, char **entries, size_t *no_entries) {
+int list(int tar_fd, char *path, char **entries, size_t *no_entries) { // on a des erreurs en soumettant mais on a pas de feedback
     tar_header_t buff;
     int is_sym = is_symlink(tar_fd, path);
     while (is_sym) {
@@ -248,6 +248,37 @@ int list(int tar_fd, char *path, char **entries, size_t *no_entries) {
  *         the end of the file.
  *
  */
-ssize_t read_file(int tar_fd, char *path, size_t offset, uint8_t *dest, size_t *len) {
-    return 0;
+ssize_t read_file(int tar_fd, char *path, size_t offset, uint8_t *dest, size_t *len) { // on a des erreurs en soumettant: len et return_value are wrong sometimes (peut-etre a cause de offset ?)
+    tar_header_t buff;
+    int is_sym = is_symlink(tar_fd, path);
+    while (is_sym) {
+        pread(tar_fd, &buff, sizeof(tar_header_t), (is_sym-1)*BLOCK);
+        path = buff.linkname;
+        is_sym = is_symlink(tar_fd, path);
+    }
+
+    int position = is_file(tar_fd, path);
+    if (position) {
+        // lire le fichier etc...
+        pread(tar_fd, &buff, sizeof(tar_header_t), (position-1)*BLOCK);
+
+        // check if offset > buff.size
+        if (offset >= TAR_INT(buff.size)) {
+            *len = 0;
+            return -2;
+        }
+        // copy file to dest
+        ssize_t cpy = pread(tar_fd, dest, *len, position*BLOCK + offset);
+
+        // check if everything is copied to return =0 or >0
+        if (cpy < 0) {
+            printf("erreur de pread() dans read_file()\n");
+            return -3;
+        }
+        *len = cpy;
+        return TAR_INT(buff.size) - cpy - offset;
+    }
+
+    *len = 0;
+    return -1; // file doesn't exists or isn't a file
 }
