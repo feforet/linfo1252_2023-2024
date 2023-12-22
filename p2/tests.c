@@ -39,31 +39,32 @@ int main(int argc, char **argv) {
     int check = check_archive(fd);
     printf("check_archive returned %d\n", check);
 
-    int ex = exists(fd, "tests.c");
+    int ex = exists(fd, "hello/aaa.txt");
     printf("exists returned %d\n", ex);
 
-    int ret = is_dir(fd, "hello/");
+    int ret = is_dir(fd, "hello/dir/");
     printf("is_dir right returned %d\n", ret);
 
-    ret = is_dir(fd, "Makefile");
+    ret = is_dir(fd, "hello/aaa.txt");
     printf("is_dir wrong returned %d\n", ret);
 
-    ret = is_file(fd, "Makefile");
+    ret = is_file(fd, "hello/aaa.txt");
     printf("is_file right returned %d\n", ret);
 
-    ret = is_file(fd, "hello/");
+    ret = is_file(fd, "hello/dir/");
     printf("is_file wrong returned %d\n", ret);
 
     char* entries[check];
     for (int i = 0; i < check; i++) {
-        entries[i] = (char*) malloc(sizeof(char[100]));
+        entries[i] = (char*) malloc(sizeof(char[512]));
     }
     size_t no_entr = check;
-    ret = list(fd, "hello/", entries, &no_entr);
+    ret = list(fd, "hello/dir/", entries, &no_entr);
     for (int i = 0; i < check; i++) {
         printf("- %s -\n", entries[i]);
         free(entries[i]);
     }
+    printf("listed: %ld\n", no_entr);
 
     return 0;
 }

@@ -163,6 +163,36 @@ int is_symlink(int tar_fd, char *path) {
     return check_type(tar_fd, path, SYMTYPE);
 }
 
+int is_hardlink(int tar_fd, char *path) {
+    return check_type(tar_fd, path, LNKTYPE);
+}
+
+int link_to(int tar_fd, char *path, char *ret_path) {
+    tar_header_t buff;
+    int loc = exists(tar_fd, path);
+    pread(tar_fd, &buff, sizeof(tar_header_t), (loc-1)*BLOCK);
+
+    if (buff.typeflag == SYMTYPE) {
+        // on cherche la ou est situe buff
+        int pre_path_len = strlen(buff.name);
+        char *cur = buff.name + pre_path_len-1;
+        while ((pre_path_len > 0) && (*cur != '/')) {
+            cur--;
+            pre_path_len--;
+        }
+        char newpath[512];
+        strncpy(newpath, buff.name, pre_path_len);
+        strcpy(newpath + pre_path_len, buff.linkname);
+        return link_to(tar_fd, newpath, ret_path);
+    }
+
+    if (buff.typeflag == LNKTYPE) {
+        return link_to(tar_fd, buff.linkname, ret_path);
+    }
+    strcpy(ret_path, buff.name);
+    return loc;
+}
+
 
 /**
  * Lists the entries at a given path in the archive.
@@ -188,30 +218,33 @@ int is_symlink(int tar_fd, char *path) {
  */
 int list(int tar_fd, char *path, char **entries, size_t *no_entries) { // on a des erreurs en soumettant mais on a pas de feedback
     tar_header_t buff;
-    int is_sym = is_symlink(tar_fd, path);
-    while (is_sym) {
-        pread(tar_fd, &buff, sizeof(tar_header_t), (is_sym-1)*BLOCK);
-        path = buff.linkname;
-        is_sym = is_symlink(tar_fd, path);
-    }
-    if (is_dir(tar_fd, path)) {
+    char def_path[512];
+    link_to(tar_fd, path, def_path); // on se dirige vers le dossier vers lequel pointe le potentiel symlink
+    if (is_dir(tar_fd, def_path)) {
         int n_listed = 0;
-        int len_path = strlen(path);
+        int len_path = strlen(def_path);
         int start = 0;
-        for (int i = 0; i < *no_entries; i++) {
+        for (int i = 0; i < *no_entries; i++) { // faire un while(n_listed < no_entries) mais attention checker que on dépasse pas la fin de l'archive
             // OK parcourir les entrees du dir
-            // OK ne considerer que les fichiers dont le nom commence par (*path)
+            // OK ne considerer que les fichiers dont le nom commence par (*def_path)
             // OK et qui ne contiennent aucun '/' suplémentaire ou seulement un a la toute fin
             pread(tar_fd, &buff, sizeof(tar_header_t), start*BLOCK);
             int cur_name_len = strlen(buff.name);
-            if ((cur_name_len > len_path) && (strncmp(path, buff.name, len_path) == 0)) {
-                //current is in path or in one of its sub-directories
+            if ((cur_name_len > len_path) && (strncmp(def_path, buff.name, len_path) == 0)) {
+                //current is in def_path or in one of its sub-directories
                 char cur_name[cur_name_len];
-                strncpy(cur_name, buff.name, cur_name_len);
+                strcpy(cur_name, buff.name);
                 cur_name[cur_name_len - 2] = '\0'; //on enleve le dernier char du nom de l'entree pour que si c'est un dir ca prenne pas le '/' final
-                if (strstr(cur_name+len_path, "/") == NULL) {
-                    //current is directly in path
-                    strcpy(entries[n_listed], buff.name);
+                if (strstr(cur_name+len_path, "/") == NULL) { // if there isn't a '/' after def_path (it's not in a sub-directory)
+                    //current is directly in def_path
+                    char pathname[512];
+                    char linkto[512];
+                    strcpy(pathname, buff.name);
+                    link_to(tar_fd, buff.name, linkto);
+                    if (is_symlink(tar_fd, buff.name) && is_dir(tar_fd, linkto)) {
+                        strcpy(pathname+cur_name_len, "/");
+                    }
+                    strcpy(entries[n_listed], pathname);
                     n_listed++;
                 }
             }
@@ -250,14 +283,10 @@ int list(int tar_fd, char *path, char **entries, size_t *no_entries) { // on a d
  */
 ssize_t read_file(int tar_fd, char *path, size_t offset, uint8_t *dest, size_t *len) { // on a des erreurs en soumettant: len et return_value are wrong sometimes (peut-etre a cause de offset ?)
     tar_header_t buff;
-    int is_sym = is_symlink(tar_fd, path);
-    while (is_sym) {
-        pread(tar_fd, &buff, sizeof(tar_header_t), (is_sym-1)*BLOCK);
-        path = buff.linkname;
-        is_sym = is_symlink(tar_fd, path);
-    }
+    char def_path[512];
+    link_to(tar_fd, path, def_path); // on se dirige vers le dossier vers lequel pointe le potentiel symlink
 
-    int position = is_file(tar_fd, path);
+    int position = is_file(tar_fd, def_path);
     if (position) {
         // lire le fichier etc...
         pread(tar_fd, &buff, sizeof(tar_header_t), (position-1)*BLOCK);
@@ -275,7 +304,7 @@ ssize_t read_file(int tar_fd, char *path, size_t offset, uint8_t *dest, size_t *
             printf("erreur de pread() dans read_file()\n");
             return -3;
         }
-        *len = cpy;
+        *len = cpy; // verifier que on met la bonne valeur
         return TAR_INT(buff.size) - cpy - offset;
     }
 
