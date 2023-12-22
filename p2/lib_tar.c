@@ -240,7 +240,7 @@ int list(int tar_fd, char *path, char **entries, size_t *no_entries) { // on a d
                 //current is in def_path or in one of its sub-directories
                 char cur_name[cur_name_len];
                 strcpy(cur_name, buff.name);
-                cur_name[cur_name_len - 2] = '\0'; //on enleve le dernier char du nom de l'entree pour que si c'est un dir ca prenne pas le '/' final
+                cur_name[cur_name_len - 1] = '\0'; //on enleve le dernier char du nom de l'entree pour que si c'est un dir ca prenne pas le '/' final
                 if (strstr(cur_name+len_path, "/") == NULL) { // if there isn't a '/' after def_path (it's not in a sub-directory)
                     //current is directly in def_path
                     char pathname[512];
