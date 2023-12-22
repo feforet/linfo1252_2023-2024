@@ -36,13 +36,16 @@ int main(int argc, char **argv) {
         return -1;
     } 
 
-    int check = check_archive(fd);
+    int check;
+    int ret;
+
+    check = check_archive(fd);/*
     printf("check_archive returned %d\n", check);
 
     int ex = exists(fd, "hello/aaa.txt");
     printf("exists returned %d\n", ex);
 
-    int ret = is_dir(fd, "hello/dir/");
+    ret = is_dir(fd, "hello/dir/");
     printf("is_dir right returned %d\n", ret);
 
     ret = is_dir(fd, "hello/aaa.txt");
@@ -53,18 +56,31 @@ int main(int argc, char **argv) {
 
     ret = is_file(fd, "hello/dir/");
     printf("is_file wrong returned %d\n", ret);
+    */
 
+    //check = 1;//check-10;
     char* entries[check];
     for (int i = 0; i < check; i++) {
         entries[i] = (char*) malloc(sizeof(char[512]));
     }
     size_t no_entr = check;
-    ret = list(fd, "hello/dir/", entries, &no_entr);
+    ret = list(fd, "hello/", entries, &no_entr);
     for (int i = 0; i < check; i++) {
-        printf("- %s -\n", entries[i]);
+        printf("-%s-\n", entries[i]);
         free(entries[i]);
     }
-    printf("listed: %ld\n", no_entr);
+    printf("listed: %ld\t\texpected: 11\n", no_entr);
+    printf("return value: %d\t\texpected: nonzero\n", ret);
+
+    /*
+    size_t len = 512;
+    char reader[len];
+    ret = read_file(fd, "hello/lll", 0, (uint8_t*) reader, &len);
+    printf("\nFile read:\n");
+    printf("+++++\n%s\n+++++\n",reader);
+    printf("Bytes written to dest: %ld\t\texpected: 10\n", len);
+    printf("Return value: %d\t\texpected: 0\n", ret);
+    */
 
     return 0;
 }

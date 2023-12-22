@@ -181,8 +181,9 @@ int link_to(int tar_fd, char *path, char *ret_path) {
             pre_path_len--;
         }
         char newpath[512];
-        strncpy(newpath, buff.name, pre_path_len);
+        strcpy(newpath, buff.name);
         strcpy(newpath + pre_path_len, buff.linkname);
+        if (!exists(tar_fd, newpath)) strcat(newpath, "/");
         return link_to(tar_fd, newpath, ret_path);
     }
 
@@ -224,7 +225,12 @@ int list(int tar_fd, char *path, char **entries, size_t *no_entries) { // on a d
         int n_listed = 0;
         int len_path = strlen(def_path);
         int start = 0;
-        for (int i = 0; i < *no_entries; i++) { // faire un while(n_listed < no_entries) mais attention checker que on dépasse pas la fin de l'archive
+        while (n_listed < *no_entries) { // faire un while(n_listed < no_entries) mais attention checker que on dépasse pas la fin de l'archive
+            if(calculate_chksum(&buff) == 256){
+                // end of the archive
+                *no_entries = n_listed;
+                return 2;
+            }
             // OK parcourir les entrees du dir
             // OK ne considerer que les fichiers dont le nom commence par (*def_path)
             // OK et qui ne contiennent aucun '/' suplémentaire ou seulement un a la toute fin
@@ -291,21 +297,21 @@ ssize_t read_file(int tar_fd, char *path, size_t offset, uint8_t *dest, size_t *
         // lire le fichier etc...
         pread(tar_fd, &buff, sizeof(tar_header_t), (position-1)*BLOCK);
 
+        size_t cur_size = TAR_INT(buff.size);
         // check if offset > buff.size
-        if (offset >= TAR_INT(buff.size)) {
+        if (offset > cur_size) {
             *len = 0;
             return -2;
         }
-        // copy file to dest
-        ssize_t cpy = pread(tar_fd, dest, *len, position*BLOCK + offset);
 
-        // check if everything is copied to return =0 or >0
-        if (cpy < 0) {
-            printf("erreur de pread() dans read_file()\n");
-            return -3;
+
+        if (cur_size - offset <= *len) {
+            *len = cur_size - offset;
+            pread(tar_fd, dest, *len, position*BLOCK + offset);
+            return 0;
         }
-        *len = cpy; // verifier que on met la bonne valeur
-        return TAR_INT(buff.size) - cpy - offset;
+        pread(tar_fd, dest, *len, position*BLOCK + offset);
+        return TAR_INT(buff.size) - *len - offset;
     }
 
     *len = 0;
